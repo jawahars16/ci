@@ -12,14 +12,13 @@ class TestJob(TestCase):
 
     def setUp(self):
         self.testdb = Database('sqlite:///data/database.db')
-        self.testdb.create()
 
     def tearDown(self):
         pass
         self.testdb.dropAll()
 
     def test_add_job(self):
-        service = JobService()
+        service = JobService(self.testdb)
         service.add_job('Test title', 'Test description')
 
         jobs = service.get_jobs()
@@ -27,14 +26,14 @@ class TestJob(TestCase):
         self.assertEqual(jobs[0].title, 'Test title')
 
     def test_add_job_without_title(self):
-        service = JobService()
+        service = JobService(self.testdb)
         service.add_job(None)
 
         jobs = service.get_jobs()
         self.assertEqual(0, len(jobs))
 
     def test_add_steps_to_job(self):
-        service = JobService()
+        service = JobService(self.testdb)
         service.add_job('Test title', 'Test description')
 
         jobs = service.get_jobs()

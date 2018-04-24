@@ -12,8 +12,6 @@ class Database:
         self.engine = create_engine(path, poolclass=NullPool)
         self.engine.echo = echo
         self.session = sessionmaker(bind=self.engine)
-
-    def create(self):
         Base.metadata.create_all(self.engine)
 
     def newSession(self):

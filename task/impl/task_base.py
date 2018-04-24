@@ -13,6 +13,3 @@ class TaskBase(ABC):
     @abstractmethod
     def run(self):
         pass
-
-    def on_remove(self):
-        pass
