@@ -1,7 +1,6 @@
 import logging
 import os
 from unittest import TestCase
-
 from common.task_loader import TaskLoader
 
 
@@ -9,8 +8,28 @@ class TestTaskLoader(TestCase):
 
     def setUp(self):
         logging.getLogger().setLevel(logging.DEBUG)
-        self.taskloader = TaskLoader(os.path.join(os.path.dirname(__file__).replace('test',''), 'task'))
+        self.taskloader = TaskLoader(os.path.join(
+            os.path.dirname(__file__).replace('test', ''), 'task'))
 
+    def test_resolve_category(self):
+        category = self.taskloader.__resolve_category__('test', '/')
+        self.assertEqual('/test', category)
+
+    def test_resolve_category_without_delimiter(self):
+        category = self.taskloader.__resolve_category__('test', '')
+        self.assertEqual('test', category)
+
+    def test_resolve_classname(self):
+        classname = self.taskloader.__resolve_classname__('TestClass')
+        self.assertEqual('Test Class', classname)
+
+    def test_resolve_classname_camelcase(self):
+        classname = self.taskloader.__resolve_classname__('testClass')
+        self.assertEqual('Test Class', classname)
+
+    def test_resolve_classname_lowercase(self):
+        classname = self.taskloader.__resolve_classname__('testclass')
+        self.assertEqual('Testclass', classname)
 
     def test_load_tasks(self):
         tasks = self.taskloader.load_tasks('test')

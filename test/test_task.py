@@ -25,3 +25,5 @@ class TestTask(TestCase):
         tasks = service.get_all_tasks('test')
         inputs = service.get_inputs(tasks[0].id)
         self.assertEqual(2, len(inputs))
+        self.assertEqual('test1', inputs[0].key)
+        self.assertEqual(False, inputs[1].required)

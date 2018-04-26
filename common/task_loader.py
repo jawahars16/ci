@@ -13,15 +13,17 @@ class TaskLoader:
     def __init__(self, path):
         self.path = path
 
-
     def __resolve_category__(self, category, delimiter):
         if category is None:
             return ''
         else:
             return f'{delimiter}{category}'
 
+    def __resolve_classname__(self, clazz):
+        classname = re.sub(r"(\w)([A-Z])", r"\1 \2", clazz)
+        return ' '.join(map(lambda a: a.capitalize(), classname.split(' ')))
 
-    def load_tasks(self, category = None):
+    def load_tasks(self, category=None):
         '''
         Load all the plugins in given directory
         :param category: sub directory
@@ -33,7 +35,7 @@ class TaskLoader:
         pluginfiles = filter(pysearchre.search,
                              os.listdir(search_path))
 
-        form_module = lambda fp: '.' + os.path.splitext(fp)[0]
+        def form_module(fp): return '.' + os.path.splitext(fp)[0]
         plugins = map(form_module, pluginfiles)
 
         module_name = f'task{self.__resolve_category__(category, ".")}'
@@ -47,26 +49,22 @@ class TaskLoader:
             if not plugin.startswith('.__'):
                 logging.debug(f'Importing plugin {plugin}')
                 clazz = self.load_task(module_name, plugin)
-                task = Task(f'{plugin}@{module_name}', re.sub(r"(\w)([A-Z])", r"\1 \2", clazz.__name__), clazz().__doc__)
+                task = Task(f'{plugin}@{module_name}', self.__resolve_classname__(
+                    clazz.__name__), clazz().__doc__)
                 tasks.append(task)
 
         return tasks
 
-
     def load_task(self, module_name, plugin):
         module = importlib.import_module(plugin, package=module_name)
-        clazzes = inspect.getmembers(module, lambda clz:
-        inspect.isclass(clz) and
-        issubclass(clz, TaskBase) and
-        not inspect.isabstract(clz))
+        clazzes = inspect.getmembers(module, lambda clz: inspect.isclass(
+            clz) and issubclass(clz, TaskBase) and not inspect.isabstract(clz))
         if clazzes is None or len(clazzes) < 1:
-            raise NotImplementedError("No class found to implement the abstract class 'TaskBase'")
+            raise NotImplementedError(
+                "No class found to implement the abstract class 'TaskBase'")
         if len(clazzes) > 1:
-            raise RuntimeError("More than one class found to implement the abstract class 'TaskBase'")
+            raise RuntimeError(
+                "More than one class found to implement the abstract class 'TaskBase'")
         className = clazzes[0][0]
         clazz = getattr(module, className)
         return clazz
-
-
-mod = importlib.import_module('.test_task', 'task.test')
-print(mod)
