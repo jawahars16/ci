@@ -1,12 +1,12 @@
 from model.job import Job
 import logging
-
+from datacontext.database import Database
 from model.step import Step
 
 
 class JobService:
 
-    def __init__(self, db):
+    def __init__(self, db: Database):
         self.db = db
 
     def add_job(self, title, description=None, job=None):
@@ -21,34 +21,31 @@ class JobService:
             description=description
         )
 
-        session = self.db.newSession()
-        session.add(job)
-        session.commit()
-        session.close()
+        with self.db.new_session() as session:
+            session.add(job)
 
         return True
 
     def get_jobs(self):
-        session = self.db.newSession()
-        jobs = session.query(Job).all()
-        session.close()
+        jobs = []
+
+        with self.db.new_query_session() as session:
+            jobs = session.query(Job).all()
+
         return jobs
 
     def add_steps(self, job_id, steps):
-        session = self.db.newSession()
-        job = session.query(Job).get(job_id)
+        job = None
 
-        if job is None:
-            logging.error(f'Job with id {job_id} not found')
-            return
-
-        job.steps = steps
-        session.merge(job)
-        session.commit()
-        session.close()
+        with self.db.new_session() as session:
+            job = session.query(Job).get(job_id)
+            if job is None:
+                logging.error(f'Job with id {job_id} not found')
+                return
+            job.steps = steps
 
     def get_steps(self, job_id):
-        session = self.db.newSession()
-        steps = session.query(Step).filter_by(job=job_id).all()
-        session.close()
+        with self.db.new_query_session() as session:
+            steps = session.query(Step).filter_by(job=job_id).all()
+
         return steps
